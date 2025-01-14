@@ -1,4 +1,6 @@
-public class Board {
+import java.io.*;
+
+public class Board implements Serializable {
     public final char[] arr;
 
     public Board() {
@@ -48,6 +50,19 @@ public class Board {
     public void clear() {
         for (int x = 1; x <= 9; x++) {
             this.arr[x - 1] = ' ';
+        }
+    }
+
+    public void save(String fileName) throws IOException {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            oos.writeObject(this);
+        }
+    }
+
+    public void load(String fileName) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
+            Board loadedBoard = (Board) ois.readObject();
+            System.arraycopy(loadedBoard.arr, 0, this.arr, 0, this.arr.length);
         }
     }
 }

@@ -1,0 +1,161 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Random;
+
+public class TicTacToeGUI extends JFrame {
+    private static final int SIZE = 3;
+    private JButton[][] buttons = new JButton[SIZE][SIZE];
+    private char[][] board = new char[SIZE][SIZE];
+    private boolean player1Turn = true; // Player 1 is 'X', Player 2 is 'O'
+    private boolean multiplayerMode = false;
+    private Random compChoice = new Random();
+
+    public TicTacToeGUI() {
+        setTitle("Tic-Tac-Toe");
+        setLayout(new GridLayout(SIZE, SIZE));
+        setSize(400, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Start with the mode selection
+        int mode = JOptionPane.showOptionDialog(this, "Select mode", "Tic-Tac-Toe",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
+                null, new Object[] { "Single Player", "Multiplayer" }, "Single Player");
+
+        multiplayerMode = (mode == 1);  // 1 for Multiplayer, 0 for Single Player
+
+        initializeBoard();
+        createButtons();
+        setVisible(true);
+    }
+
+    private void initializeBoard() {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                board[i][j] = ' '; // Empty space at the beginning
+            }
+        }
+    }
+
+    private void createButtons() {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                buttons[i][j] = new JButton("");
+                buttons[i][j].setFont(new Font("Arial", Font.PLAIN, 60));
+                buttons[i][j].setFocusPainted(false);
+                buttons[i][j].addActionListener(new ButtonClickListener(i, j));
+                add(buttons[i][j]);
+            }
+        }
+    }
+
+    private class ButtonClickListener implements ActionListener {
+        int row, col;
+
+        ButtonClickListener(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (board[row][col] == ' ') { // Only proceed if the cell is empty
+                board[row][col] = player1Turn ? 'X' : 'O';
+                buttons[row][col].setText(String.valueOf(board[row][col]));
+
+                if (checkWin()) {
+                    JOptionPane.showMessageDialog(null, "Player " + (player1Turn ? "1 (X)" : "2 (O)") + " wins!");
+                    resetGame();
+                } else if (checkDraw()) {
+                    JOptionPane.showMessageDialog(null, "It's a draw!");
+                    resetGame();
+                }
+
+                player1Turn = !player1Turn; // Switch turn
+
+                if (!player1Turn && multiplayerMode == false) { // If it's the AI's turn
+                    aiMove();
+                }
+            }
+        }
+    }
+
+    private void aiMove() {
+        int row, col;
+
+        // Simple AI: Randomly pick an empty space
+        while (true) {
+            row = compChoice.nextInt(SIZE);
+            col = compChoice.nextInt(SIZE);
+
+            if (board[row][col] == ' ') {
+                board[row][col] = 'O';
+                buttons[row][col].setText("O");
+                break;
+            }
+        }
+
+        if (checkWin()) {
+            JOptionPane.showMessageDialog(null, "Computer (O) wins!");
+            resetGame();
+        } else if (checkDraw()) {
+            JOptionPane.showMessageDialog(null, "It's a draw!");
+            resetGame();
+        }
+
+        player1Turn = true; // Switch back to player's turn
+    }
+
+    private boolean checkWin() {
+        // Check rows, columns, and diagonals for a win
+        for (int i = 0; i < SIZE; i++) {
+            if (board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != ' ') {
+                return true;
+            }
+            if (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != ' ') {
+                return true;
+            }
+        }
+
+        if (board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != ' ') {
+            return true;
+        }
+
+        if (board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' ') {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean checkDraw() {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (board[i][j] == ' ') {
+                    return false;
+                }
+            }
+        }
+        return true; // If all cells are filled and no winner, it's a draw
+    }
+
+    private void resetGame() {
+        int response = JOptionPane.showConfirmDialog(this, "Do you want to play again?", "Game Over", JOptionPane.YES_NO_OPTION);
+        if (response == JOptionPane.YES_OPTION) {
+            initializeBoard();
+            for (int i = 0; i < SIZE; i++) {
+                for (int j = 0; j < SIZE; j++) {
+                    buttons[i][j].setText("");
+                }
+            }
+            player1Turn = true;
+        } else {
+            System.exit(0);
+        }
+    }
+
+    public static void main(String[] args) {
+        new TicTacToeGUI();
+    }
+}
